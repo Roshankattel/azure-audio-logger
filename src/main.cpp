@@ -10,6 +10,7 @@
 unsigned long soundValue = 0;
 unsigned long sampleBufferValue = 0;
 uint8_t sampleCount = 0;
+uint64_t msgCount = 0;
 
 // Functions
 int RestPostData(String URI, String fingerPrint, String Authorization, String PostData)
@@ -87,7 +88,8 @@ void loop()
     if (soundValue > 200)
     {
       Serial.println("Sound Detected");
-      String PostData = "{ \"sound_received\": true }";
+      msgCount++;
+      String PostData = "{ \"sound_received\": true, \"msg_count\": " + String(msgCount) + " }";
       Serial.println(PostData);
       int returnCode = RestPostData(IOT_HUB_URL, IOT_HUB_FINGERPRINT, SAS_TOKEN, PostData);
       Serial.println(returnCode);
