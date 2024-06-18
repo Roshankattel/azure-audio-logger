@@ -89,7 +89,7 @@ void loop()
     {
       Serial.println("Sound Detected");
       msgCount++;
-      String PostData = "{ \"sound_received\": true, \"msg_count\": " + String(msgCount) + " }";
+      String PostData = "{\"sound_received\":true, \"msg_count\": " + String(msgCount) + " }";
       Serial.println(PostData);
       int returnCode = RestPostData(IOT_HUB_URL, IOT_HUB_FINGERPRINT, SAS_TOKEN, PostData);
       Serial.println(returnCode);
