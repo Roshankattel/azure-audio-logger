@@ -13,20 +13,20 @@ uint8_t sampleCount = 0;
 uint64_t msgCount = 0;
 
 // Functions
-int RestPostData(String URI, String fingerPrint, String Authorization, String PostData)
+int RestPostData(String URI, String Authorization, String PostData)
 {
   int httpCode = -1;
   std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
   // Ignore SSL certificate validation
+  // client->setFingerprint(fingerprint);
   client->setInsecure();
   // create an HTTPClient instance
   HTTPClient https;
-
   // Initializing an HTTPS communication using the secure client
   Serial.print("[HTTPS] begin...\n");
   if (https.begin(*client, URI))
   { // HTTPS
-    Serial.print("[HTTPS] GET...\n");
+    Serial.print("[HTTPS] POST...\n");
     // start connection and send HTTP header
     https.addHeader("Authorization", Authorization);
     https.addHeader("Content-Type", "application/json");
@@ -45,7 +45,7 @@ int RestPostData(String URI, String fingerPrint, String Authorization, String Po
     }
     else
     {
-      Serial.printf("[HTTPS] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
+      Serial.printf("[HTTPS] POST... failed, error: %s\n", https.errorToString(httpCode).c_str());
     }
 
     https.end();
@@ -54,6 +54,8 @@ int RestPostData(String URI, String fingerPrint, String Authorization, String Po
   {
     Serial.printf("[HTTPS] Unable to connect\n");
   }
+  Serial.println("Waiting 2min before the next round...");
+  delay(120000);
   return httpCode;
 }
 
@@ -87,13 +89,12 @@ void loop()
     // Serial.println(soundValue);
     if (soundValue > 200)
     {
-      Serial.println("Sound Detected");
+      Serial.println("Sound Detected:" + String(msgCount));
       msgCount++;
       String PostData = "{\"sound_received\":true, \"msg_count\": " + String(msgCount) + " }";
       Serial.println(PostData);
-      int returnCode = RestPostData(IOT_HUB_URL, IOT_HUB_FINGERPRINT, SAS_TOKEN, PostData);
-      Serial.println(returnCode);
-      delay(10000);
+      int returnCode = RestPostData(IOT_HUB_URL, SAS_TOKEN, PostData);
+      // Serial.println(returnCode);
     }
     sampleBufferValue = 0;
     sampleCount = 0;
