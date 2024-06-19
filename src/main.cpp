@@ -1,16 +1,17 @@
 
 #include <Arduino.h>
-
 #include <ESP8266WiFi.h>
-#include <WiFiClientSecure.h>
+#include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
-#include <WiFiClientSecureBearSSL.h>
+#include <WiFiClient.h>
 #include "config.h"
 
 unsigned long soundValue = 0;
 unsigned long sampleBufferValue = 0;
 uint8_t sampleCount = 0;
 uint64_t msgCount = 0;
+
+ESP8266WiFiMulti WiFiMulti;
 
 // Functions
 int restPostData(String URI, String authorization, String postData)
@@ -54,8 +55,8 @@ int restPostData(String URI, String authorization, String postData)
   {
     Serial.printf("[HTTPS] Unable to connect\n");
   }
-  Serial.println("Waiting 2min before the next round...");
-  delay(120000);
+  Serial.println("Waiting 10 sec before the next round...");
+  delay(10000);
   return httpCode;
 }
 
@@ -63,17 +64,24 @@ void setup()
 {
   // put your setup code here, to run once:
   Serial.begin(115200);
+
   pinMode(SOUND_PIN, INPUT);
+
+  Serial.println();
+  Serial.println();
+  Serial.println();
+
+  for (uint8_t t = 4; t > 0; t--)
+  {
+    Serial.printf("[SETUP] WAIT %d...\n", t);
+    Serial.flush();
+    delay(1000);
+  }
 
   // Connect to Wi-Fi
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi ");
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.print('.');
-    delay(1000);
-  }
+  WiFiMulti.addAP(ssid, password);
+
   Serial.print("\nConnected to ");
   Serial.println(WiFi.SSID());
 }
@@ -93,8 +101,11 @@ void loop()
       msgCount++;
       String postData = "{\"sound_received\":true, \"msg_count\": " + String(msgCount) + ", \"millis\": " + String(millis()) + ",\"wifi_rssi\": " + String(WiFi.RSSI()) + "}";
       Serial.println(postData);
-      int returnCode = restPostData(IOT_HUB_URL, SAS_TOKEN, postData);
-      // Serial.println(returnCode);
+      if ((WiFiMulti.run() == WL_CONNECTED))
+      {
+        int returnCode = restPostData(IOT_HUB_URL, SAS_TOKEN, postData);
+        Serial.println(returnCode);
+      }
     }
     sampleBufferValue = 0;
     sampleCount = 0;
