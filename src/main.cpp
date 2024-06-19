@@ -13,7 +13,7 @@ uint8_t sampleCount = 0;
 uint64_t msgCount = 0;
 
 // Functions
-int RestPostData(String URI, String Authorization, String PostData)
+int restPostData(String URI, String authorization, String postData)
 {
   int httpCode = -1;
   std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
@@ -28,9 +28,9 @@ int RestPostData(String URI, String Authorization, String PostData)
   { // HTTPS
     Serial.print("[HTTPS] POST...\n");
     // start connection and send HTTP header
-    https.addHeader("Authorization", Authorization);
+    https.addHeader("Authorization", authorization);
     https.addHeader("Content-Type", "application/json");
-    httpCode = https.POST(PostData);
+    httpCode = https.POST(postData);
     // httpCode will be negative on error
     if (httpCode > 0)
     {
@@ -89,11 +89,11 @@ void loop()
     // Serial.println(soundValue);
     if (soundValue > 200)
     {
-      Serial.println("Sound Detected:" + String(msgCount));
+      Serial.println("\nSound Detected:" + String(msgCount));
       msgCount++;
-      String PostData = "{\"sound_received\":true, \"msg_count\": " + String(msgCount) + " }";
-      Serial.println(PostData);
-      int returnCode = RestPostData(IOT_HUB_URL, SAS_TOKEN, PostData);
+      String postData = "{\"sound_received\":true, \"msg_count\": " + String(msgCount) + ", \"millis\": " + String(millis()) + ",\"wifi_rssi\": " + String(WiFi.RSSI()) + "}";
+      Serial.println(postData);
+      int returnCode = restPostData(IOT_HUB_URL, SAS_TOKEN, postData);
       // Serial.println(returnCode);
     }
     sampleBufferValue = 0;
